@@ -7,3 +7,15 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rumqttc = "0.2.0"
+tokio = "0.2"
+dashmap = "3.11"
+json = "0.12.4"
+warp = "0.2.5"
+dotenv = "0.15.0"
+ctrlc = { version = "3.1.7", features = ["termination"] }
+color-eyre = "0.5.7"
+async-stream = "0.3.0"
+pin-utils = "0.1.0"
+hostname = "^0.3"
+warp-reverse-proxy = "0.2.0"
