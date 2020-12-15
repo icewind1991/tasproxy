@@ -83,7 +83,7 @@ async fn mqtt_client(host: &str, port: u16, device_states: DeviceStates) -> Resu
     let hostname = hostname::get()?
         .into_string()
         .map_err(|_| Report::msg("invalid hostname"))?;
-    let mut mqtt_options = MqttOptions::new(format!("taspromto-{}", hostname), host, port);
+    let mut mqtt_options = MqttOptions::new(format!("tasproxy-{}", hostname), host, port);
     mqtt_options.set_keep_alive(5);
 
     let (client, stream) = mqtt_stream(mqtt_options)
