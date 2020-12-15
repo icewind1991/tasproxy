@@ -57,7 +57,10 @@ async fn main() -> Result<()> {
                     None => return Err(warp::reject::not_found()),
                 };
                 let requested_device = host.as_str().split('.').next().unwrap();
-                if let Some(state) = states.get(requested_device) {
+                if let Some(state) = states
+                    .get(requested_device)
+                    .or_else(|| states.get(&requested_device.replace('-', "_")))
+                {
                     if let Some(ip) = state.ip {
                         Ok((format!("http://{}", ip), String::new()))
                     } else {
