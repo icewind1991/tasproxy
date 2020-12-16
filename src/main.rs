@@ -2,10 +2,10 @@ use crate::config::Config;
 use crate::devices::DeviceState;
 use crate::mqtt::mqtt_stream;
 use crate::topic::Topic;
-use color_eyre::{eyre::WrapErr, Report, Result};
+use color_eyre::{eyre::WrapErr, Result};
 use dashmap::DashMap;
 use pin_utils::pin_mut;
-use rumqttc::{MqttOptions, QoS};
+use rumqttc::QoS;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::stream::StreamExt;
@@ -33,11 +33,9 @@ async fn main() -> Result<()> {
     .expect("Error setting Ctrl-C handler");
 
     let states = device_states.clone();
-    let mqtt_host = config.mqtt_host;
-    let mqtt_port = config.mqtt_port;
     tokio::task::spawn(async move {
         loop {
-            if let Err(e) = mqtt_client(&mqtt_host, mqtt_port, states.clone()).await {
+            if let Err(e) = mqtt_client(&config, states.clone()).await {
                 eprintln!("lost mqtt collection: {:#}", e);
             }
             eprintln!("reconnecting after 1s");
@@ -79,12 +77,8 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn mqtt_client(host: &str, port: u16, device_states: DeviceStates) -> Result<()> {
-    let hostname = hostname::get()?
-        .into_string()
-        .map_err(|_| Report::msg("invalid hostname"))?;
-    let mut mqtt_options = MqttOptions::new(format!("tasproxy-{}", hostname), host, port);
-    mqtt_options.set_keep_alive(5);
+async fn mqtt_client(config: &Config, device_states: DeviceStates) -> Result<()> {
+    let mqtt_options = config.mqtt()?;
 
     let (client, stream) = mqtt_stream(mqtt_options)
         .await

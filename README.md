@@ -16,6 +16,8 @@ Run the binary with the following environment variables
 
 - `MQTT_HOSTNAME`: hostname of the MQTT server to connect to
 - `MQTT_PORT`: port of the mqtt server to connect to, defaults to 1883
+- `MQTT_USERNAME`: username to authenticate against the mqtt server
+- `MQTT_PASSWORD`: password to authenticate against the mqtt server
 - `PORT`: port this binary MQTT listen on, defaults to 80
 
 Setup dns/hosts/etc to point *.example.com to the server running this binary
