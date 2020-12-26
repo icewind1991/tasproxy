@@ -88,44 +88,50 @@ async fn mqtt_client(config: &Config, device_states: DeviceStates) -> Result<()>
 
     while let Some(message) = stream.next().await {
         let message = message?;
-        println!(
-            "{} {}",
-            message.topic,
-            std::str::from_utf8(message.payload.as_ref()).unwrap_or_default()
-        );
+        let payload = std::str::from_utf8(message.payload.as_ref()).unwrap_or_default();
+        println!("{} {}", message.topic, payload);
         let topic = Topic::from(message.topic.as_str());
 
         match topic {
             Topic::LWT(device) => {
-                // on discovery, ask the device for it's ip and name
-                let send_client = client.clone();
-                tokio::task::spawn(async move {
-                    if let Err(e) = send_client
-                        .publish(
-                            device.get_topic("cmnd", "IPADDRESS"),
-                            QoS::AtMostOnce,
-                            false,
-                            "",
-                        )
-                        .await
-                    {
-                        eprintln!("Failed to ask for power state: {:#}", e);
+                match payload {
+                    "Online" => {
+                        println!("Discovered {}", device.hostname);
+                        // on discovery, ask the device for it's ip and name
+                        let send_client = client.clone();
+                        tokio::task::spawn(async move {
+                            if let Err(e) = send_client
+                                .publish(
+                                    device.get_topic("cmnd", "IPADDRESS"),
+                                    QoS::AtLeastOnce,
+                                    false,
+                                    "",
+                                )
+                                .await
+                            {
+                                eprintln!("Failed to ask for device IP: {:#}", e);
+                            }
+                            if let Err(e) = send_client
+                                .publish(
+                                    device.get_topic("cmnd", "DeviceName"),
+                                    QoS::AtLeastOnce,
+                                    false,
+                                    "",
+                                )
+                                .await
+                            {
+                                eprintln!("Failed to ask for device name: {:#}", e);
+                            }
+                        });
                     }
-                    if let Err(e) = send_client
-                        .publish(
-                            device.get_topic("cmnd", "DeviceName"),
-                            QoS::AtMostOnce,
-                            false,
-                            "",
-                        )
-                        .await
-                    {
-                        eprintln!("Failed to ask for device name: {:#}", e);
+                    "Offline" => {
+                        println!("Removing {}", device.hostname);
+                        device_states.remove(&device.hostname);
                     }
-                });
+                    _ => {}
+                }
             }
             Topic::Result(device) => {
-                let payload = std::str::from_utf8(message.payload.as_ref()).unwrap_or_default();
                 if let Ok(json) = json::parse(payload) {
                     let mut device_state = device_states.entry(device.hostname).or_default();
                     device_state.update(json);
