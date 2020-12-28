@@ -60,11 +60,14 @@ async fn main() -> Result<()> {
                     .or_else(|| states.get(&requested_device.replace('-', "_")))
                 {
                     if let Some(ip) = state.ip {
+                        println!("{} => {}", requested_device, ip);
                         Ok((format!("http://{}", ip), String::new()))
                     } else {
+                        eprintln!("Error {} has no ip set", requested_device);
                         Err(warp::reject::not_found())
                     }
                 } else {
+                    eprintln!("Error {} has no discovered", requested_device);
                     Err(warp::reject::not_found())
                 }
             },
