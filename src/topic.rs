@@ -12,11 +12,10 @@ pub enum Topic {
 impl From<&str> for Topic {
     fn from(raw: &str) -> Self {
         let mut parts = raw.split('/');
-        if let (Some(prefix), Some(topic), Some(hostname), Some(cmd)) =
-        (parts.next(), parts.next(), parts.next(), parts.next())
+        if let (Some(prefix), Some(hostname), Some(cmd)) =
+            (parts.next(), parts.next(), parts.next())
         {
             let device = Device {
-                topic: topic.to_string(),
                 hostname: hostname.to_string(),
             };
             match (prefix, cmd) {

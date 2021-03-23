@@ -4,13 +4,12 @@ use std::str::FromStr;
 
 #[derive(Debug, Eq, PartialEq, Clone, Hash)]
 pub struct Device {
-    pub topic: String,
     pub hostname: String,
 }
 
 impl Device {
     pub fn get_topic(&self, prefix: &str, command: &str) -> String {
-        format!("{}/{}/{}/{}", prefix, self.topic, self.hostname, command)
+        format!("{}/{}/{}", prefix, self.hostname, command)
     }
 }
 
