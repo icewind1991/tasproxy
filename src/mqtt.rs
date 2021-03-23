@@ -1,7 +1,7 @@
 use async_stream::try_stream;
 use color_eyre::Result;
+use futures_util::stream::{Stream, StreamExt};
 use rumqttc::{AsyncClient, Event, EventLoop, MqttOptions, Packet, Publish, QoS};
-use tokio::stream::{Stream, StreamExt};
 
 pub async fn mqtt_stream(
     mqtt_options: MqttOptions,
@@ -10,10 +10,12 @@ pub async fn mqtt_stream(
     client.subscribe("tele/+/LWT", QoS::AtMostOnce).await?;
     client.subscribe("stat/+/RESULT", QoS::AtMostOnce).await?;
 
-    let stream = event_loop_to_stream(event_loop).filter_map(|event| match event {
-        Ok(Event::Incoming(Packet::Publish(message))) => Some(Ok(message)),
-        Ok(_) => None,
-        Err(e) => Some(Err(e)),
+    let stream = event_loop_to_stream(event_loop).filter_map(|event| async move {
+        match event {
+            Ok(Event::Incoming(Packet::Publish(message))) => Some(Ok(message)),
+            Ok(_) => None,
+            Err(e) => Some(Err(e)),
+        }
     });
 
     Ok((client, stream))

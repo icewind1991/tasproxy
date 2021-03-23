@@ -4,12 +4,12 @@ use crate::mqtt::mqtt_stream;
 use crate::topic::Topic;
 use color_eyre::{eyre::WrapErr, Result};
 use dashmap::DashMap;
+use futures_util::stream::StreamExt;
 use pin_utils::pin_mut;
 use rumqttc::{AsyncClient, QoS};
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::stream::StreamExt;
-use tokio::time::delay_for;
+use tokio::time::sleep;
 use warp::hyper::http::uri::Authority;
 use warp::Filter;
 use warp_reverse_proxy::{extract_request_data_filter, proxy_to_and_forward_response};
@@ -40,7 +40,7 @@ async fn main() -> Result<()> {
                 eprintln!("lost mqtt collection: {:#}", e);
             }
             eprintln!("reconnecting after 1s");
-            tokio::time::delay_for(Duration::from_secs(1)).await;
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
     });
 
@@ -125,7 +125,7 @@ async fn query_device(client: AsyncClient, device: Device) {
         // one device boot, the discovery event can happen before the device is ready to respond to our messages
         // thus we wait 5 seconds before asking
 
-        delay_for(Duration::from_secs(5)).await;
+        sleep(Duration::from_secs(5)).await;
 
         if let Err(e) = client
             .publish(
