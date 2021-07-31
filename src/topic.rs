@@ -35,22 +35,18 @@ impl From<&str> for Topic {
 fn parse_topic() {
     let device = Device {
         hostname: "hostname".to_string(),
-        topic: "foo".to_string(),
     };
-    assert_eq!(
-        Topic::LWT(device.clone()),
-        Topic::from("tele/foo/hostname/LWT")
-    );
+    assert_eq!(Topic::LWT(device.clone()), Topic::from("tele/hostname/LWT"));
     assert_eq!(
         Topic::State(device.clone()),
-        Topic::from("tele/foo/hostname/STATE")
+        Topic::from("tele/hostname/STATE")
     );
     assert_eq!(
         Topic::Sensor(device.clone()),
-        Topic::from("tele/foo/hostname/SENSOR")
+        Topic::from("tele/hostname/SENSOR")
     );
     assert_eq!(
         Topic::Result(device.clone()),
-        Topic::from("stat/foo/hostname/RESULT")
+        Topic::from("stat/hostname/RESULT")
     );
 }

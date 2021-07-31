@@ -7,10 +7,10 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/icewind1991/tasproxy"
 
 [dependencies]
-rumqttc = "0.5"
+rumqttc = "0.8"
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 futures-util = "0.3"
-dashmap = "3"
+dashmap = "4"
 json = "0.12"
 warp = "0.3"
 dotenv = "0.15.0"
