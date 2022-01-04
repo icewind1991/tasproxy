@@ -4,7 +4,7 @@ Auto-discovery reverse proxy for [tasmota](https://tasmota.github.io/docs/)
 
 ## Why
 
-Remembering what ip addresses all of your tasmota's ip addresses is a pain.
+Remembering what ip addresses all of your tasmota devices is a pain.
 
 ## Setup
 
