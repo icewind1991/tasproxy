@@ -9,6 +9,7 @@ use pin_utils::pin_mut;
 use rumqttc::{AsyncClient, QoS};
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::signal;
 use tokio::time::sleep;
 use warp::hyper::http::uri::Authority;
 use warp::Filter;
@@ -27,11 +28,6 @@ async fn main() -> Result<()> {
     let host_port = config.host_port;
 
     let device_states = DeviceStates::default();
-
-    ctrlc::set_handler(move || {
-        std::process::exit(0);
-    })
-    .expect("Error setting Ctrl-C handler");
 
     let states = device_states.clone();
     tokio::task::spawn(async move {
@@ -77,7 +73,13 @@ async fn main() -> Result<()> {
         .and(extract_request_data_filter())
         .and_then(proxy_to_and_forward_response);
 
-    warp::serve(proxy).run(([0, 0, 0, 0], host_port)).await;
+    let (_addr, server) =
+        warp::serve(proxy).bind_with_graceful_shutdown(([0, 0, 0, 0], host_port), async {
+            signal::ctrl_c().await.ok();
+        });
+
+    server.await;
+
     Ok(())
 }
 
@@ -97,7 +99,7 @@ async fn mqtt_client(config: &Config, device_states: DeviceStates) -> Result<()>
         let topic = Topic::from(message.topic.as_str());
 
         match topic {
-            Topic::LWT(device) => match payload {
+            Topic::Lwt(device) => match payload {
                 "Online" => {
                     println!("Discovered {}", device.hostname);
                     query_device(client.clone(), device).await;

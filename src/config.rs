@@ -1,6 +1,7 @@
 use color_eyre::{eyre::WrapErr, Report, Result};
 use rumqttc::MqttOptions;
 use std::str::FromStr;
+use std::time::Duration;
 
 #[derive(Default)]
 pub struct Config {
@@ -56,7 +57,7 @@ impl Config {
         if let Some(credentials) = self.mqtt_credentials.as_ref() {
             mqtt_options.set_credentials(&credentials.username, &credentials.password);
         }
-        mqtt_options.set_keep_alive(5);
+        mqtt_options.set_keep_alive(Duration::from_secs(5));
         Ok(mqtt_options)
     }
 }

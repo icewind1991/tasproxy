@@ -2,7 +2,7 @@ use crate::devices::Device;
 
 #[derive(Debug, Eq, PartialEq)]
 pub enum Topic {
-    LWT(Device),
+    Lwt(Device),
     State(Device),
     Sensor(Device),
     Result(Device),
@@ -19,7 +19,7 @@ impl From<&str> for Topic {
                 hostname: hostname.to_string(),
             };
             match (prefix, cmd) {
-                ("tele", "LWT") => Topic::LWT(device),
+                ("tele", "LWT") => Topic::Lwt(device),
                 ("tele", "STATE") => Topic::State(device),
                 ("tele", "SENSOR") => Topic::Sensor(device),
                 ("stat", "RESULT") => Topic::Result(device),
@@ -36,7 +36,7 @@ fn parse_topic() {
     let device = Device {
         hostname: "hostname".to_string(),
     };
-    assert_eq!(Topic::LWT(device.clone()), Topic::from("tele/hostname/LWT"));
+    assert_eq!(Topic::Lwt(device.clone()), Topic::from("tele/hostname/LWT"));
     assert_eq!(
         Topic::State(device.clone()),
         Topic::from("tele/hostname/STATE")
