@@ -1,16 +1,21 @@
-use crate::config::Config;
+use crate::config::{Config, Listen};
 use crate::devices::{Device, DeviceState};
 use crate::mqtt::mqtt_stream;
 use crate::topic::Topic;
 use color_eyre::{eyre::WrapErr, Result};
 use dashmap::DashMap;
+use futures_util::future::{Either, FutureExt};
 use futures_util::stream::StreamExt;
 use pin_utils::pin_mut;
 use rumqttc::{AsyncClient, QoS};
+use std::fs::{remove_file, set_permissions};
+use std::os::unix::prelude::PermissionsExt;
 use std::sync::Arc;
 use std::time::Duration;
+use tokio::net::UnixListener;
 use tokio::signal;
 use tokio::time::sleep;
+use tokio_stream::wrappers::UnixListenerStream;
 use warp::hyper::http::uri::Authority;
 use warp::Filter;
 use warp_reverse_proxy::{extract_request_data_filter, proxy_to_and_forward_response};
@@ -25,7 +30,7 @@ type DeviceStates = Arc<DashMap<String, DeviceState>>;
 #[tokio::main]
 async fn main() -> Result<()> {
     let config = Config::from_env()?;
-    let host_port = config.host_port;
+    let listen = config.listen.clone();
 
     let device_states = DeviceStates::default();
 
@@ -73,10 +78,32 @@ async fn main() -> Result<()> {
         .and(extract_request_data_filter())
         .and_then(proxy_to_and_forward_response);
 
-    let (_addr, server) =
-        warp::serve(proxy).bind_with_graceful_shutdown(([0, 0, 0, 0], host_port), async {
-            signal::ctrl_c().await.ok();
-        });
+    let cancel = async {
+        signal::ctrl_c().await.ok();
+    };
+
+    let warp_server = warp::serve(proxy);
+    let server = match listen {
+        Listen::Tcp(host_port) => Either::Left(
+            warp_server
+                .bind_with_graceful_shutdown(([0, 0, 0, 0], host_port), cancel)
+                .1,
+        ),
+        Listen::Unix(socket) => {
+            remove_file(&socket).ok();
+
+            let listener = UnixListener::bind(&socket)?;
+            set_permissions(&socket, PermissionsExt::from_mode(0o666))?;
+            let stream = UnixListenerStream::new(listener);
+            Either::Right(
+                warp_server
+                    .serve_incoming_with_graceful_shutdown(stream, cancel)
+                    .map(move |_| {
+                        remove_file(&socket).ok();
+                    }),
+            )
+        }
+    };
 
     server.await;
 

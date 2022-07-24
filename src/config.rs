@@ -3,12 +3,17 @@ use rumqttc::MqttOptions;
 use std::str::FromStr;
 use std::time::Duration;
 
-#[derive(Default)]
 pub struct Config {
     pub mqtt_host: String,
     pub mqtt_port: u16,
     pub mqtt_credentials: Option<Credentials>,
-    pub host_port: u16,
+    pub listen: Listen,
+}
+
+#[derive(Clone)]
+pub enum Listen {
+    Tcp(u16),
+    Unix(String),
 }
 
 pub struct Credentials {
@@ -23,10 +28,16 @@ impl Config {
             .ok()
             .and_then(|port| u16::from_str(&port).ok())
             .unwrap_or(1883);
-        let host_port = dotenv::var("PORT")
-            .ok()
-            .and_then(|port| u16::from_str(&port).ok())
-            .unwrap_or(80);
+        let listen = match dotenv::var("SOCKET") {
+            Ok(socket) => Listen::Unix(socket),
+            _ => {
+                let port = dotenv::var("PORT")
+                    .ok()
+                    .and_then(|port| u16::from_str(&port).ok())
+                    .unwrap_or(80);
+                Listen::Tcp(port)
+            }
+        };
 
         let mqtt_credentials = match dotenv::var("MQTT_USERNAME") {
             Ok(username) => {
@@ -40,8 +51,8 @@ impl Config {
         Ok(Config {
             mqtt_host,
             mqtt_port,
-            host_port,
             mqtt_credentials,
+            listen,
         })
     }
 
