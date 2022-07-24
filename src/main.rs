@@ -16,9 +16,14 @@ use tokio::net::UnixListener;
 use tokio::signal;
 use tokio::time::sleep;
 use tokio_stream::wrappers::UnixListenerStream;
+use warp::http::{HeaderMap, HeaderValue, Method};
+use warp::hyper::body::Bytes;
 use warp::hyper::http::uri::Authority;
+use warp::path::FullPath;
 use warp::Filter;
-use warp_reverse_proxy::{extract_request_data_filter, proxy_to_and_forward_response};
+use warp_reverse_proxy::{
+    extract_request_data_filter, proxy_to_and_forward_response, QueryParameters,
+};
 
 mod config;
 mod devices;
@@ -31,6 +36,10 @@ type DeviceStates = Arc<DashMap<String, DeviceState>>;
 async fn main() -> Result<()> {
     let config = Config::from_env()?;
     let listen = config.listen.clone();
+    let tasmota_credentails = config
+        .tasmota_credentials
+        .as_ref()
+        .map(|auth| auth.auth_header());
 
     let device_states = DeviceStates::default();
 
@@ -76,7 +85,28 @@ async fn main() -> Result<()> {
         )
         .untuple_one()
         .and(extract_request_data_filter())
-        .and_then(proxy_to_and_forward_response);
+        .and_then(
+            move |proxy_address: String,
+                  base_path: String,
+                  uri: FullPath,
+                  params: QueryParameters,
+                  method: Method,
+                  mut headers: HeaderMap,
+                  body: Bytes| {
+                if let Some(credentials) = tasmota_credentails.as_deref() {
+                    headers.append("authorization", HeaderValue::from_str(credentials).unwrap());
+                }
+                proxy_to_and_forward_response(
+                    proxy_address,
+                    base_path,
+                    uri,
+                    params,
+                    method,
+                    headers,
+                    body,
+                )
+            },
+        );
 
     let cancel = async {
         signal::ctrl_c().await.ok();

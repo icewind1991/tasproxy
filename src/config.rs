@@ -8,6 +8,7 @@ pub struct Config {
     pub mqtt_port: u16,
     pub mqtt_credentials: Option<Credentials>,
     pub listen: Listen,
+    pub tasmota_credentials: Option<Credentials>,
 }
 
 #[derive(Clone)]
@@ -16,9 +17,22 @@ pub enum Listen {
     Unix(String),
 }
 
+#[derive(Clone)]
 pub struct Credentials {
-    username: String,
-    password: String,
+    pub username: String,
+    pub password: String,
+}
+
+impl Credentials {
+    pub fn auth_header(&self) -> String {
+        let mut header = "Basic ".to_string();
+        base64::encode_config_buf(
+            format!("{}:{}", self.username, self.password),
+            base64::STANDARD,
+            &mut header,
+        );
+        header
+    }
 }
 
 impl Config {
@@ -48,10 +62,20 @@ impl Config {
             Err(_) => None,
         };
 
+        let tasmota_credentials = match dotenv::var("TASMOTA_USERNAME") {
+            Ok(username) => {
+                let password = dotenv::var("TASMOTA_PASSWORD")
+                    .wrap_err("TASMOTA_USERNAME set, but TASMOTA_PASSWORD not set")?;
+                Some(Credentials { username, password })
+            }
+            Err(_) => None,
+        };
+
         Ok(Config {
             mqtt_host,
             mqtt_port,
             mqtt_credentials,
+            tasmota_credentials,
             listen,
         })
     }
