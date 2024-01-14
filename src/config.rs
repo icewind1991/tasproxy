@@ -1,3 +1,4 @@
+use base64::prelude::*;
 use color_eyre::{eyre::WrapErr, Report, Result};
 use rumqttc::MqttOptions;
 use std::str::FromStr;
@@ -26,11 +27,7 @@ pub struct Credentials {
 impl Credentials {
     pub fn auth_header(&self) -> String {
         let mut header = "Basic ".to_string();
-        base64::encode_config_buf(
-            format!("{}:{}", self.username, self.password),
-            base64::STANDARD,
-            &mut header,
-        );
+        BASE64_STANDARD.encode_string(format!("{}:{}", self.username, self.password), &mut header);
         header
     }
 }

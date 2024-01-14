@@ -36,7 +36,7 @@ type DeviceStates = Arc<DashMap<String, DeviceState>>;
 async fn main() -> Result<()> {
     let config = Config::from_env()?;
     let listen = config.listen.clone();
-    let tasmota_credentails = config
+    let tasmota_credentials = config
         .tasmota_credentials
         .as_ref()
         .map(|auth| auth.auth_header());
@@ -93,7 +93,7 @@ async fn main() -> Result<()> {
                   method: Method,
                   mut headers: HeaderMap,
                   body: Bytes| {
-                if let Some(credentials) = tasmota_credentails.as_deref() {
+                if let Some(credentials) = tasmota_credentials.as_deref() {
                     headers.append("authorization", HeaderValue::from_str(credentials).unwrap());
                 }
                 proxy_to_and_forward_response(
@@ -129,7 +129,7 @@ async fn main() -> Result<()> {
                 warp_server
                     .serve_incoming_with_graceful_shutdown(stream, cancel)
                     .map(move |_| {
-                        remove_file(&socket).ok();
+                        remove_file(socket).ok();
                     }),
             )
         }

@@ -22,6 +22,8 @@ Run the binary with the following environment variables
 - `MQTT_PASSWORD`: password to authenticate against the mqtt server
 - `PORT`: port this binary MQTT listen on, defaults to 80
 
+You can also configure the proxy to send HTTP Basic authentication to the tasmota devices by setting the `TASMOTA_USERNAME` and `TASMOTA_PASSWORD` environment variables.
+
 Setup dns/hosts/etc to point *.example.com to the server running this binary
 
 ## Usage
