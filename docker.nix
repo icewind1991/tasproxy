@@ -1,6 +1,5 @@
-{
-  dockerTools,
-  tasproxy,
+{ dockerTools
+, tasproxy
 }:
 dockerTools.buildLayeredImage {
   name = "icewind1991/tasproxy";
@@ -11,9 +10,9 @@ dockerTools.buildLayeredImage {
     dockerTools.caCertificates
   ];
   config = {
-    Cmd = ["tasproxy"];
+    Cmd = [ "tasproxy" ];
     ExposedPorts = {
-      "80/tcp" = {};
+      "80/tcp" = { };
     };
   };
 }

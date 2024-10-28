@@ -1,12 +1,12 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
+{ config
+, lib
+, pkgs
+, ...
 }:
 with lib; let
   cfg = config.services.tasproxy;
-in {
+in
+{
   options.services.tasproxy = {
     enable = mkEnableOption "Log archiver";
 
@@ -36,7 +36,7 @@ in {
 
   config = mkIf cfg.enable {
     systemd.services."tasproxy" = {
-      wantedBy = ["multi-user.target"];
+      wantedBy = [ "multi-user.target" ];
       environment =
         if cfg.enableUnixSocket
         then {
@@ -70,7 +70,7 @@ in {
         RestrictAddressFamilies = "AF_INET AF_INET6 AF_UNIX";
         RestrictRealtime = true;
         ProtectProc = "noaccess";
-        SystemCallFilter = ["@system-service" "~@resources" "~@privileged"];
+        SystemCallFilter = [ "@system-service" "~@resources" "~@privileged" ];
         IPAddressDeny = "multicast";
         PrivateUsers = true;
         ProcSubset = "pid";

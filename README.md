@@ -1,6 +1,6 @@
 # Tasproxy
 
-Auto-discovery reverse proxy for [tasmota](https://tasmota.github.io/docs/) 
+Auto-discovery reverse proxy for [tasmota](https://tasmota.github.io/docs/)
 
 ## Why
 
@@ -24,10 +24,10 @@ Run the binary with the following environment variables
 
 You can also configure the proxy to send HTTP Basic authentication to the tasmota devices by setting the `TASMOTA_USERNAME` and `TASMOTA_PASSWORD` environment variables.
 
-Setup dns/hosts/etc to point *.example.com to the server running this binary
+Setup dns/hosts/etc to point `*.example.com` to the server running this binary
 
 ## Usage
 
 The proxy server will use MQTT to discover and gather the ip addresses of your tasmota devices.
 
-Any request made to `%hostname%.example.com` will be proxied to the tasmota device with the corresponding topic. 
+Any request made to `%hostname%.example.com` will be proxied to the tasmota device with the corresponding topic.
