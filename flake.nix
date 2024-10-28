@@ -27,7 +27,7 @@
         }: {
           imports = [ ./module.nix ];
           config = lib.mkIf config.services.tasproxy.enable {
-            nixpkgs.overlays = [ outputs.overlays.default ];
+            nixpkgs.overlays = [ (import ./overlay.nix) ];
             services.tasproxy.package = lib.mkDefault pkgs.tasproxy;
           };
         };
