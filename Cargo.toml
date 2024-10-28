@@ -8,16 +8,16 @@ repository = "https://github.com/icewind1991/tasproxy"
 
 [dependencies]
 rumqttc = "0.24.0"
-tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread", "signal"] }
-futures-util = "0.3.30"
-dashmap = "5.5.3"
+tokio = { version = "1.41.0", features = ["macros", "rt-multi-thread", "signal"] }
+futures-util = "0.3.31"
+dashmap = "6.1.0"
 json = "0.12.4"
 warp = "0.3.7"
 dotenv = "0.15.0"
 color-eyre = "0.6.3"
-async-stream = "0.3.5"
+async-stream = "0.3.6"
 pin-utils = "0.1.0"
 hostname = "0.4.0"
-warp-reverse-proxy = { version = "1.0.0", default_features = false, features = ["rustls-tls"] }
-tokio-stream = { version = "0.1.15", features = ["net"] }
+warp-reverse-proxy = { version = "1.0.0", default-features = false, features = ["rustls-tls"] }
+tokio-stream = { version = "0.1.16", features = ["net"] }
 base64 = "0.22.1"
