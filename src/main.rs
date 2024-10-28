@@ -2,6 +2,7 @@ use crate::config::{Config, Listen};
 use crate::devices::{Device, DeviceState};
 use crate::mqtt::mqtt_stream;
 use crate::topic::Topic;
+use clap::Parser;
 use color_eyre::{eyre::WrapErr, Result};
 use dashmap::DashMap;
 use futures_util::future::{Either, FutureExt};
@@ -32,12 +33,25 @@ mod topic;
 
 type DeviceStates = Arc<DashMap<String, DeviceState>>;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Config file to use, if omitted the config will be loaded from environment variables
+    config: Option<String>,
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = Config::from_env()?;
+    let args = Args::parse();
+
+    let config = match args.config {
+        Some(path) => Config::from_file(path)?,
+        _ => Config::from_env()?,
+    };
     let listen = config.listen.clone();
     let tasmota_credentials = config
-        .tasmota_credentials
+        .tasmota
+        .credentials
         .as_ref()
         .map(|auth| auth.auth_header());
 
@@ -114,12 +128,15 @@ async fn main() -> Result<()> {
 
     let warp_server = warp::serve(proxy);
     let server = match listen {
-        Listen::Tcp(host_port) => Either::Left(
+        Listen::Tcp {
+            port: host_port,
+            address,
+        } => Either::Left(
             warp_server
-                .bind_with_graceful_shutdown(([0, 0, 0, 0], host_port), cancel)
+                .bind_with_graceful_shutdown((address, host_port), cancel)
                 .1,
         ),
-        Listen::Unix(socket) => {
+        Listen::Unix { socket } => {
             remove_file(&socket).ok();
 
             let listener = UnixListener::bind(&socket)?;

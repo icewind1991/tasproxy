@@ -21,3 +21,7 @@ hostname = "0.4.0"
 warp-reverse-proxy = { version = "1.0.0", default-features = false, features = ["rustls-tls"] }
 tokio-stream = { version = "0.1.16", features = ["net"] }
 base64 = "0.22.1"
+secretfile = "0.1.0"
+serde = { version = "1.0.213", features = ["derive"] }
+toml = "0.8.19"
+clap = { version = "4.5.20", features = ["derive"] }
