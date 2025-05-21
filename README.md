@@ -1,3 +1,5 @@
+# Moved to https://codeberg.org/icewind/tasproxy
+
 # Tasproxy
 
 Auto-discovery reverse proxy for [tasmota](https://tasmota.github.io/docs/)
